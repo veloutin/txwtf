@@ -11,13 +11,17 @@ from twisted.web.template import (
 import wtforms as wtf
 from wtforms import validators
 
-from txwtf import forms, fields
+from txwtf import forms, fields, iwtf
+
+def getgettext(request):
+    trans = request.getComponent(iwtf.ITranslations, None)
+    if trans:
+        return trans.gettext
+    else:
+        return lambda msg:msg
 
 def NewProjectForm(request):
-    try:
-        _ = request.catalog.gettext
-    except AttributeError:
-        _ = lambda o:o
+    _ = getgettext(request)
 
     class NewProjectForm(forms.Form):
         client_long = fields.TextField(_("Client Name"),
@@ -74,7 +78,7 @@ def parseAcceptLanguage(header):
 
 def setRequestCatalog(request):
     languages = parseAcceptLanguage(request.getHeader("Accept-Language"))
-    request.catalog = get_translations(languages)
+    request.setComponent(iwtf.ITranslations, get_translations(languages))
     return request
 
 
@@ -166,7 +170,7 @@ class FormElement(Element):
 
     @renderer
     def gettext(self, request, tag):
-        _ = request.catalog.gettext
+        _ = getgettext(request)
         return tag.fillSlots(
             submit=_("Submit"),
         )
@@ -190,7 +194,7 @@ class Layout(Element):
 
     @renderer
     def title(self, request, tag):
-        _ = request.catalog.gettext
+        _ = getgettext(request)
         return tag(_('Hoorj!'))
 
     @renderer

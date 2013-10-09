@@ -1,6 +1,8 @@
 
 from wtforms import form
 
+from txwtf.iwtf import ITranslations
+
 class RequestWrapper(object):
     def __init__(self, request):
         self.r = request
@@ -31,6 +33,6 @@ class Form(form.Form):
         form.Form.__init__(self, formdata, obj, prefix, **kwargs)
 
     def _get_translations(self):
-        return getattr(self._request, "catalog", None)
+        return self._request.getComponent(ITranslations, None)
 
 
